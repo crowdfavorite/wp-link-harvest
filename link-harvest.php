@@ -69,14 +69,14 @@ if (!function_exists('is_admin_page')) {
 }
 
 function aklh_init() {
-	global $aklh, $wpdb;
-	$wpdb->ak_domains = $wpdb->prefix.'ak_domains';
-	$wpdb->ak_linkharvest = $wpdb->prefix.'ak_linkharvest';
-	
+	global $aklh;
+
 	$aklh = new ak_link_harvest;
+	$aklh->set_table_prefix();
 	$aklh->get_settings();
 }
 add_action('init', 'aklh_init');
+add_action('switch_blog', 'aklh_init'); // re-initilize with switched blog settings
 
 function aklh_plugin_action_links($links, $file) {
 	$plugin_file = basename(__FILE__);
@@ -129,6 +129,12 @@ class ak_link_harvest {
 			, '.txt'
 			, '.m4p'
 		);
+	}
+
+	function set_table_prefix() {
+		global $wpdb;
+		$wpdb->ak_domains = $wpdb->prefix.'ak_domains';
+		$wpdb->ak_linkharvest = $wpdb->prefix.'ak_linkharvest';
 	}
 	
 	function install() {
