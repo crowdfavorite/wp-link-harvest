@@ -454,6 +454,9 @@ class ak_link_harvest {
 			$where = " WHERE id = '".intval($domain_id)."' ";
 		}
 		if (isset($where)) {
+			$mod = in_array($mod, array('+', '-'))
+				? $mod
+				: '+';
 			$result = $wpdb->query("
 				UPDATE $wpdb->ak_domains
 				SET count = count $mod ".intval($count)."
