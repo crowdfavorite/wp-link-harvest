@@ -454,6 +454,9 @@ class ak_link_harvest {
 			$where = " WHERE id = '".intval($domain_id)."' ";
 		}
 		if (isset($where)) {
+			$mod = in_array($mod, array('+', '-'))
+				? $mod
+				: '+';
 			$result = $wpdb->query("
 				UPDATE $wpdb->ak_domains
 				SET count = count $mod ".intval($count)."
@@ -562,7 +565,7 @@ class ak_link_harvest {
 		$links = $wpdb->get_results("
 			SELECT *
 			FROM $wpdb->ak_linkharvest
-			WHERE post_id = '$post_id'
+			WHERE post_id = '".intval($post_id)."'
 		");
 		$urls = array();
 		foreach ($links as $link) {
@@ -575,7 +578,7 @@ class ak_link_harvest {
 		$wpdb->query("
 			DELETE
 			FROM $wpdb->ak_linkharvest
-			WHERE post_id = '$post_id'
+			WHERE post_id = '".intval($post_id)."'
 		");
 	}
 	
@@ -660,7 +663,7 @@ class ak_link_harvest {
 				');
 				if (count($domains) == 0) {
 					print('
-		<tr><td colspan="4">'.__('No links harvested yet. (<a href="'.get_bloginfo('wpurl').'/wp-admin/options-general.php?ak_action=harvest">Start Harvesting</a>)', 'link-harvest').'</td></tr>
+		<tr><td colspan="4">'.__('No links harvested yet. (<a href="'.esc_url(admin_url('options-general.php?ak_action=harvest')).'">Start Harvesting</a>)', 'link-harvest').'</td></tr>
 					');
 				}
 				else {
@@ -679,10 +682,10 @@ class ak_link_harvest {
 						}
 						print('
 		<tr id="aklh_table_row_'.$domain->id.'"'.$class.'>
-			<td><a href="http://'.$domain->domain.'">'.$title.'</a><div id="domain_'.$domain->id.'"></div></td>
-			<td class="count">'.htmlspecialchars($domain->count).'</td>
-			<td class="action"><a href="javascript:void(aklh_show_for_domain(\''.$domain->id.'\', \'links\'));">'.__('Show Links', 'link-harvest').'</td>
-			<td class="action"><a href="javascript:void(aklh_show_for_domain(\''.$domain->id.'\', \'posts\'));">'.__('Show Posts', 'link-harvest').'</td>
+			<td><a href="http://'.$domain->domain.'">'.esc_html($title).'</a><div id="domain_'.$domain->id.'"></div></td>
+			<td class="count">'.esc_html($domain->count).'</td>
+			<td class="action"><a href="javascript:void(aklh_show_for_domain(\''.esc_js($domain->id).'\', \'links\'));">'.__('Show Links', 'link-harvest').'</td>
+			<td class="action"><a href="javascript:void(aklh_show_for_domain(\''.esc_js($domain->id).'\', \'posts\'));">'.__('Show Posts', 'link-harvest').'</td>
 		</tr>
 						');
 						$i++;
@@ -697,7 +700,7 @@ class ak_link_harvest {
 				$items = array();
 				foreach ($domains as $domain) {
 					if (!empty($domain->title)) {
-						$title = htmlspecialchars($domain->title).' ('.$domain->domain.')';
+						$title = $domain->title.' ('.$domain->domain.')';
 					}
 					else {
 						$title = '('.$domain->domain.')';
@@ -714,7 +717,7 @@ class ak_link_harvest {
 	function get_list_nodes($items) {
 		$output = '';
 		foreach ($items as $url => $title) {
-			$output .= '<li><a href="'.$url.'">'.$title.'</a></li>'."\n";
+			$output .= '<li><a href="'.esc_url($url).'">'.esc_html($title).'</a></li>'."\n";
 		}
 		return $output;
 	}
@@ -739,14 +742,14 @@ class ak_link_harvest {
 		print('
 			<div class="wrap">
 				<h2>'.__('Link Harvest Options', 'link-harvest').'</h2>
-				<form name="ak_linkharvest" action="'.get_bloginfo('wpurl').'/wp-admin/options-general.php" method="post">
+				<form name="ak_linkharvest" action="'.esc_url(admin_url('options-general.php')).'" method="post">
 					<fieldset class="options">
 						<p>'.__('You may want to exclude certain domains from your harvested links. For example, you may have a number of links to pages/posts on your own site and including your own links in the harvest will make your own site appear in your <a href="index.php?page=link-harvest.php">links list</a>.', 'link-harvest').'</p>
 						<p><label for="exclude">'.__('Domains to exclude from link harvesting (separated by spaces, example: <code>example.com '.$this->get_domain(get_bloginfo('home')).'</code>):', 'link-harvest').'</label></p>
-						<p><textarea name="exclude" id="exclude">'.htmlspecialchars(implode(' ', $this->exclude)).'</textarea></p>
+						<p><textarea name="exclude" id="exclude">'.esc_textarea(implode(' ', $this->exclude)).'</textarea></p>
 						<p>
 							<label for="table_length">'.__('Number of domains to show in report table:', 'link-harvest').'</label>
-							<input type="text" size="5" name="table_length" id="table_length" value="'.$this->table_length.'" />
+							<input type="text" size="5" name="table_length" id="table_length" value="'.esc_attr($this->table_length).'" />
 						</p>
 						<p>
 							<label for="aklh_token">'.__('Enable <a href="#token">token method</a> for showing the links list:', 'link-harvest').'</label>
@@ -768,15 +771,15 @@ class ak_link_harvest {
 					<fieldset>
 						<p>'.__('When you are ready to harvest (or re-harvest) your links, press this button', 'link-harvest').'</p>
 						<p class="submit">
-							<input type="button" name="recount" value="'.__('(Re) Harvest All Links', 'link-harvest').'" onclick="if (jQuery(\'#harvest_enabled_y:checked\').size()) { location.href=\''.get_bloginfo('wpurl').'/wp-admin/options-general.php?ak_action=harvest\'; } else { alert(\'Please enable link harvesting, save your settings, then try again.\'); }" />
+							<input type="button" name="recount" value="'.__('(Re) Harvest All Links', 'link-harvest').'" onclick="if (jQuery(\'#harvest_enabled_y:checked\').size()) { location.href=\''.esc_js(admin_url('options-general.php?ak_action=harvest')).'\'; } else { alert(\'Please enable link harvesting, save your settings, then try again.\'); }" />
 						</p>					
 					</fieldset>
 				</form>
 				<h2>'.__('Backfill Empty Titles', 'link-harvest').'</h2>
 				<p>'.__('If a few domains or pages did not get proper titles the first time around, you can try filling them in here.', 'link-harvest').'</p>
 				<ul style="margin-bottom: 40px;">
-					<li><a href="'.get_bloginfo('wpurl').'/wp-admin/options-general.php?ak_action=backfill_domains">'.__('Backfill empty domain titles', 'link-harvest').'</a></li>
-					<li><a href="'.get_bloginfo('wpurl').'/wp-admin/options-general.php?ak_action=backfill_pages">'.__('Backfill empty page titles', 'link-harvest').'</a></li>
+					<li><a href="'.esc_url(admin_url('options-general.php?ak_action=backfill_domains')).'">'.__('Backfill empty domain titles', 'link-harvest').'</a></li>
+					<li><a href="'.esc_url(admin_url('options-general.php?ak_action=backfill_pages')).'">'.__('Backfill empty page titles', 'link-harvest').'</a></li>
 				</ul>
 				<div id="aklh_template_tags">
 					<h2>'.__('Showing the Links List', 'link-harvest').'</h2>
@@ -827,7 +830,7 @@ class ak_link_harvest {
 		jQuery("#submit").hide();
 		jQuery("#progress, #cancel").show();
 		jQuery("#count").load(
-			"'.get_bloginfo('wpurl').'/wp-admin/options-general.php",
+			"'.esc_url(admin_url('options-general.php')).'",
 			{
 				"ak_action": "harvest_posts",
 				"start": start,
@@ -877,12 +880,12 @@ class ak_link_harvest {
 			<fieldset>
 				<legend>'.__('Harvest Links', 'link-harvest').'</legend>
 				<p id="submit" class="center"><input type="button" name="harvest_button" value="'.__('Start Link Harvest', 'link-harvest').'" onclick="harvest_links(0, '.$this->default_limit.'); return false;" /></p>
-				<p id="cancel" class="center"><input type="button" name="cancel_button" value="'.__('Cancel', 'link-harvest').'" onclick="location.href=\''.get_bloginfo('wpurl').'/wp-admin/options-general.php?page=link-harvest.php\';" />
+				<p id="cancel" class="center"><input type="button" name="cancel_button" value="'.__('Cancel', 'link-harvest').'" onclick="location.href=\''.esc_js(admin_url('options-general.php?page=link-harvest.php')).'\';" />
 			</fieldset>
 		</form>
-		<p id="complete" class="center">'.__('The link harvest has completed successfully. View your <a href="'.get_bloginfo('wpurl').'/wp-admin/index.php?page=link-harvest.php">links list</a>.', 'link-harvest').'</p>
-		<p id="error" class="center">'.__('The link harvest failed, make sure you have harvesting enabled in your <a href="'.get_bloginfo('wpurl').'/wp-admin/options-general.php?page=link-harvest.php">options</a>.', 'link-harvest').'</p>
-		<p class="center"><a href="'.get_bloginfo('wpurl').'/wp-admin/options-general.php?page=link-harvest.php">'.__('Back to WordPress Admin', 'link-harvest').'</a></p>
+		<p id="complete" class="center">'.__('The link harvest has completed successfully. View your <a href="'.esc_url(admin_url('index.php?page=link-harvest.php')).'">links list</a>.', 'link-harvest').'</p>
+		<p id="error" class="center">'.__('The link harvest failed, make sure you have harvesting enabled in your <a href="'.esc_url(admin_url('options-general.php?page=link-harvest.php')).'">options</a>.', 'link-harvest').'</p>
+		<p class="center"><a href="'.esc_url(admin_url('options-general.php?page=link-harvest.php')).'">'.__('Back to WordPress Admin', 'link-harvest').'</a></p>
 					';
 				}
 				break;
