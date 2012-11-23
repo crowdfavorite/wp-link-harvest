@@ -1529,21 +1529,22 @@ function aklh_show_for_domain(domain_id, type) {
 add_action('init', 'aklh_request_handler');
 
 function aklh_the_content($content) {
-	if (strstr($content, '###linkharvest###')) {
+	global $aklh;
+	if ($aklh->token && strstr($content, '###linkharvest###') !== false) {
 		$content = str_replace('###linkharvest###', aklh_get_harvest(), $content);
 	}
 	return $content;
 }
-if ($aklh->token) {
-	add_action('the_content', 'aklh_the_content');
-}
+add_action('the_content', 'aklh_the_content');
 
 function aklh_the_excerpt($content) {
-	return str_replace('###linkharvest###', '', $content);;
+	global $aklh;
+	if ($aklh->token) {
+		$content = str_replace('###linkharvest###', '', $content);
+	}
+	return $content;
 }
-if ($aklh->token) {
-	add_action('the_excerpt', 'aklh_the_excerpt');
-}
+add_action('the_excerpt', 'aklh_the_excerpt');
 
 function aklh_get_harvest($count = 50) {
 	ob_start();
