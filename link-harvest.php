@@ -733,11 +733,11 @@ class ak_link_harvest {
 				$disabled = ' checked="checked"';
 				break;
 		}
-		if (get_option('aklh_token') == '0') {
-			$token_options = '<option value="1">'.__('Yes', 'link-harvest').'</option><option value="0" selected="selected">'.__('No', 'link-harvest').'</option>';
+		if (get_option('aklh_token')) {
+			$token_options = '<option value="1" selected="selected">'.__('Yes', 'link-harvest').'</option><option value="0">'.__('No', 'link-harvest').'</option>';
 		}
 		else {
-			$token_options = '<option value="1" selected="selected">'.__('Yes', 'link-harvest').'</option><option value="0">'.__('No', 'link-harvest').'</option>';
+			$token_options = '<option value="1">'.__('Yes', 'link-harvest').'</option><option value="0" selected="selected">'.__('No', 'link-harvest').'</option>';
 		}
 		print('
 			<div class="wrap">
@@ -753,7 +753,7 @@ class ak_link_harvest {
 						</p>
 						<p>
 							<label for="aklh_token">'.__('Enable <a href="#token">token method</a> for showing the links list:', 'link-harvest').'</label>
-							<select name="aklh_token" id="token">'.$token_options.'</select>
+							<select name="token" id="token">'.$token_options.'</select>
 						</p>
 						<p>'.__('Once the initial link harvest is complete, it is a good idea to disable link harvesting as it can be resource intensive for your server. This is done for you automatically after a successful harvest, but you can manually control it here.', 'link-harvest').'</p>
 						<ul>
