@@ -76,6 +76,7 @@ function aklh_init() {
 	$aklh->get_settings();
 }
 add_action('init', 'aklh_init');
+add_action('switch_blog', 'aklh_init', 10); // re-initilize with switched blog settings
 
 function aklh_plugin_action_links($links, $file) {
 	$plugin_file = basename(__FILE__);
